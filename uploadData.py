@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import json
@@ -24,8 +25,19 @@ class FileEventHandler(FileSystemEventHandler):
 	def disconect(self, connection):
 		connection.close()
 
+	def timeStringTransfer(self, timeString):
+		# YYYYMMDDhhmmss -> YYYY-MM-DD hh:mm:ss
+		year = timeString[:4]
+		month = timeString[4:6]
+		day = timeString[6:8]
+		hour = timeString[8:10]
+		minute = timeString[10:12]
+		second = timeString[12:]
 
-	def uploadData(self, data):
+		return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ":" + second
+
+
+	def uploadData(self, data, outputTume):
 		connection = self.connectting()
 		
 		# Expected that data is a list.
@@ -33,8 +45,8 @@ class FileEventHandler(FileSystemEventHandler):
 			for people in data:
 				try:
 					with connection.cursor() as cursor:
-						sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`) VALUES (%s, %s, %s, %s )"
-						cursor.execute(sql, (people["ID"],people["inOut"], people["time"], people["frameNumber"]))
+						sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`) VALUES (%s, %s, %s, %s, %s )"
+						cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTume)))
 					connection.commit()
 				except:
 					print("stored fail...")
@@ -54,7 +66,9 @@ class FileEventHandler(FileSystemEventHandler):
 			with open(event.src_path) as f:
 				data = json.load(f)
 
-			self.uploadData(data)
+			filename = os.path.basename(event.src_path).replace(".json", "")
+
+			self.uploadData(data, filename)
 
 
 
