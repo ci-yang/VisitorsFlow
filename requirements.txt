@@ -1,1 +1,2 @@
 watchdog==0.9.0
+Telethon-sync==1.1.1
