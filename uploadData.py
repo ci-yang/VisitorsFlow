@@ -2,11 +2,15 @@ import os
 import sys
 import time
 import json
-from config import host, user, password, db
 import pymysql.cursors
+from datetime import datetime
+from config import host, user, password, db, api_id, api_hash, phone_number
 from watchdog.observers import Observer
 from watchdog.events import *
+from telethon import TelegramClient, events, sync
 
+second = 0
+client = TelegramClient('session_name', api_id, api_hash)
 
 class FileEventHandler(FileSystemEventHandler):
 	def __init__(self):
@@ -38,6 +42,7 @@ class FileEventHandler(FileSystemEventHandler):
 
 
 	def uploadData(self, data, outputTume):
+		global second
 		connection = self.connectting()
 		
 		# Expected that data is a list.
@@ -58,6 +63,7 @@ class FileEventHandler(FileSystemEventHandler):
 
 		print("Done with stored")
 		self.disconect(connection)
+		second = 0
 
 
 	def on_created(self, event):
@@ -71,10 +77,13 @@ class FileEventHandler(FileSystemEventHandler):
 			self.uploadData(data, filename)
 
 
-
-
 if __name__ == "__main__":
 	try:
+		client.connect()
+		if not client.is_user_authorized():
+		    client.send_code_request(phone_number)
+		    me = client.sign_in(phone_number, input('Enter code: '))
+
 		observer = Observer()
 		event_handler = FileEventHandler()
 		observer.schedule(event_handler, sys.argv[1], True)
@@ -83,6 +92,12 @@ if __name__ == "__main__":
 		try:
 			while True:
 				time.sleep(1)
+				second = second + 1
+				if(second < 60):
+					print(second)
+				if(second == 60):
+					print("已經一分鐘沒有資料了，快去查看一下吧 ",  datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+					client.send_message('me', "已經一分鐘沒有資料了，快去查看一下吧 " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 		except KeyboardInterrupt:
 			observer.stop()
 		observer.join()
