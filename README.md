@@ -9,6 +9,26 @@ This project is including two program. Upload and Calling API.
 
 ## How To Use
 
+#### Prepare
+
+create a new file named config.py
+
+
+
+```python
+host = "Your host IP"
+user = "your db user name"
+password = "your db password"
+db = "your db name"
+api_id = 12345   # your telegram app api id
+api_hash = 'xxxxxx'	# your telegram app api hash
+phone_number = '+886012312312'	# your telegram phone number
+```
+
+
+
+
+
 #### Step1: install package
 
 ```bash

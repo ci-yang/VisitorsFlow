@@ -31,7 +31,7 @@ class FileEventHandler(FileSystemEventHandler):
 
 	def timeStringTransfer(self, timeString):
 		# YYYYMMDDhhmmss -> YYYY-MM-DD hh:mm:ss
-		print(datetime.strptime(timeString, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S"))
+		# print(datetime.strptime(timeString, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S"))
 		
 		return datetime.strptime(timeString, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
 
