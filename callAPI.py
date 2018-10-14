@@ -82,8 +82,6 @@ def calculatePeopleFlow(data):
 	
 	finalList = [countObj, countAccuInObj, countAccuOuntObj]
 
-	with open('test.json', 'w') as outfile:
-		json.dump(finalList, outfile)
 
 	return json.dumps(finalList)
 
@@ -107,7 +105,7 @@ if __name__ == "__main__":
 		postData = calculatePeopleFlow(data)
 		print(postData)
 
-		#callingAPI(postData)
+		callingAPI(postData)
 	
 	else:
 		print("No Data")

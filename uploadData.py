@@ -31,14 +31,9 @@ class FileEventHandler(FileSystemEventHandler):
 
 	def timeStringTransfer(self, timeString):
 		# YYYYMMDDhhmmss -> YYYY-MM-DD hh:mm:ss
-		year = timeString[:4]
-		month = timeString[4:6]
-		day = timeString[6:8]
-		hour = timeString[8:10]
-		minute = timeString[10:12]
-		second = timeString[12:]
-
-		return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ":" + second
+		print(datetime.strptime(timeString, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S"))
+		
+		return datetime.strptime(timeString, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
 
 
 	def uploadData(self, data, outputTume):
@@ -93,11 +88,11 @@ if __name__ == "__main__":
 			while True:
 				time.sleep(1)
 				second = second + 1
-				if(second < 60):
+				if(second < 310):
 					print(second)
-				if(second == 60):
-					print("已經一分鐘沒有資料了，快去查看一下吧 ",  datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-					client.send_message('me', "已經一分鐘沒有資料了，快去查看一下吧 " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+				if(second == 310):
+					print("已經五分鐘沒有資料了，快去查看一下吧 ",  datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+					client.send_message('me', "已經五分鐘沒有資料了，快去查看一下吧 " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 		except KeyboardInterrupt:
 			observer.stop()
 		observer.join()
