@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import json
+import requests
 import pandas as pd
 import pymysql.cursors
 from datetime import datetime
@@ -24,10 +25,11 @@ def disconect(connection):
 
 def gettingData(timeString):
 	connection = connectting()
+	todayMorning = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
 	result = None
 	try:
 		with connection.cursor() as cursor:
-			sql = "SELECT * FROM `PeopleFlow` WHERE `time` < '" + timeString + "' ORDER BY `time` ASC"
+			sql = "SELECT * FROM `PeopleFlow` WHERE `time` <= '" + timeString + "' and `time` >= '" + todayMorning + "' ORDER BY `time` ASC"
 			cursor.execute(sql)
 			result = cursor.fetchall()
 
@@ -85,19 +87,30 @@ def calculatePeopleFlow(data):
 
 	return json.dumps(finalList)
 
+def callingAPI(postData):
+	url = "http://210.65.129.47:8008/FloraIOCAPI/reportParkPeopleFlow"
+	res = requests.post(url, data=postData)
+	res.encoding = 'utf-8'
+	print(res.json())
 
 if __name__ == "__main__":
 	# Use Jenkins to run this program
 	# Just handle getting data and posting data
 
-	# now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-	todayMorning = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+	now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+	# todayMorning = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
 
-	data = gettingData("2018-10-12 22:01:09")
+	data = gettingData(now)
 	# print(data)
 
-	postData = calculatePeopleFlow(data)
-	print(postData)
+	if(data):
+		postData = calculatePeopleFlow(data)
+		print(postData)
+
+		#callingAPI(postData)
+	
+	else:
+		print("No Data")
 
 
 
