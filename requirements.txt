@@ -1,2 +1,9 @@
 watchdog==0.9.0
 Telethon-sync==1.1.1
+
+requests==2.14.2
+
+PyMySQL==0.8.0
+
+pandas==0.22.0
+

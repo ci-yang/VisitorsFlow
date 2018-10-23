@@ -23,7 +23,7 @@ class FileEventHandler(FileSystemEventHandler):
 								db=db,
 								charset='utf8',
 								cursorclass=pymysql.cursors.DictCursor)
-		print("got connection~")
+		# print("got connection~")
 		return connection
 
 	def disconect(self, connection):
@@ -39,6 +39,7 @@ class FileEventHandler(FileSystemEventHandler):
 	def uploadData(self, data, outputTume):
 		global second
 		connection = self.connectting()
+
 		
 		# Expected that data is a list.
 		try:
@@ -55,8 +56,12 @@ class FileEventHandler(FileSystemEventHandler):
 
 		except TypeError as e:
 			print(e)
+		finally:
+			if( data ):
+				print("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTume)))
+			else:
+				print("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
 
-		print("Done with stored")
 		self.disconect(connection)
 		second = 0
 
@@ -83,13 +88,14 @@ if __name__ == "__main__":
 		event_handler = FileEventHandler()
 		observer.schedule(event_handler, sys.argv[1], True)
 		observer.start()
+		print("開始偵測...")
 
 		try:
 			while True:
 				time.sleep(1)
 				second = second + 1
-				if(second < 310):
-					print(second)
+				# if(second < 310):
+				#	print(second)
 				if(second == 310):
 					print("已經五分鐘沒有資料了，快去查看一下吧 ",  datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 					client.send_message('me', "已經五分鐘沒有資料了，快去查看一下吧 " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -98,3 +104,4 @@ if __name__ == "__main__":
 		observer.join()
 	except IndexError:
 		print("Please enter path.")
+		print("EX: python uploadData.py [folder path]")

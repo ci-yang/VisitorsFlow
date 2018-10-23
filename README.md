@@ -42,7 +42,7 @@ $ pip install -r requirements.txt
 
 
 ```bash
-$ python uploadData.py
+$ python uploadData.py [folder path]
 ```
 
 
@@ -94,11 +94,19 @@ $ python callAPI.py
 
 
 
+#### Exception
+
+> Note: 若是 json 內容為空陣列 [ ]，程式會忽略不存入資料庫並且印出以下訊息
+>
+> 空資料...[ time ]
+
+
+
 ## Calling API
 
 
 
-Flow:
+#### Flow:
 
 1. getting data from SQL by start time (today morning) and end time (current time).
 2. calculate the request data format of the API.
@@ -110,6 +118,18 @@ Flow:
 >
 > - 統計起始時間：傳回資料的第一筆資料的時間（已照時間排序）
 > - 統計結束時間：傳回資料的最後一筆資料的時間
+
+
+
+#### Error
+
+在 Windows 上面執行此程式可能會遇到解析 json 檔後印出內容時的編碼問題
+
+此時將 ==line 91== 的內容替換成下列程式碼
+
+```python
+res.encoding = 'utf-8-sig'
+```
 
 
 

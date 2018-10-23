@@ -89,6 +89,7 @@ def callingAPI(postData):
 	url = "http://210.65.129.47:8008/FloraIOCAPI/reportParkPeopleFlow"
 	res = requests.post(url, data=postData)
 	res.encoding = 'utf-8'
+	# res.encoding = 'utf-8-sig'	# for windows
 	print(res.json())
 
 if __name__ == "__main__":
