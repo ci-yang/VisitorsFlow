@@ -69,12 +69,16 @@ class FileEventHandler(FileSystemEventHandler):
 	def on_created(self, event):
 		if not event.is_directory:
 			# if there is a file created
-			with open(event.src_path) as f:
-				data = json.load(f)
+			try:
+				with open(event.src_path) as f:
+					data = json.load(f)
 
-			filename = os.path.basename(event.src_path).replace(".json", "")
+				filename = os.path.basename(event.src_path).replace(".json", "")
 
-			self.uploadData(data, filename)
+				self.uploadData(data, filename)
+			except ValueError:
+				print("Something like json format is wrong...({})".format(event.src_path))
+
 
 
 if __name__ == "__main__":
