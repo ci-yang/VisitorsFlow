@@ -3,12 +3,26 @@ import sys
 import time
 import json
 import socket
+import logging
 import pymysql.cursors
 from datetime import datetime
 from config import host, user, password, db, api_id, api_hash, phone_number
 from watchdog.observers import Observer
 from watchdog.events import *
 from telethon import TelegramClient, events, sync
+
+# make dir named log to store log files
+if not os.path.exists("log"):
+    os.makedirs("log")
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    handlers = [logging.FileHandler('log/' + datetime.now().strftime("%Y%m%d%H%M%S")+'.log', 'w', 'utf-8'),])
+
+
+logger = logging.getLogger('peopleFlow')
+
 
 second = 0
 client = TelegramClient('session_name', api_id, api_hash)
@@ -58,8 +72,10 @@ class FileEventHandler(FileSystemEventHandler):
 					finally:
 						pass
 				print("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTume)))
+				logger.info("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTume)))
 			else:
 				print("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
+				logger.info("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
 
 		except TypeError as e:
 			print(e)
@@ -85,6 +101,7 @@ class FileEventHandler(FileSystemEventHandler):
 				self.uploadData(data, filename)
 			except ValueError:
 				print("Something like json format is wrong...({})".format(event.src_path))
+				logger.error("Something like json format is wrong...({})".format(event.src_path))
 
 
 

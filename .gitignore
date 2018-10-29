@@ -6,3 +6,4 @@ Files
 *.ipynb
 data
 .DS_Store
+log
