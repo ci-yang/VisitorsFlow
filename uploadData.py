@@ -75,7 +75,7 @@ class FileEventHandler(FileSystemEventHandler):
 				logger.info("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTume)))
 			else:
 				print("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
-				logger.info("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
+				logger.warning("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
 
 		except TypeError as e:
 			print(e)
