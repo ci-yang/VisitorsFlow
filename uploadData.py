@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import json
+import socket
 import pymysql.cursors
 from datetime import datetime
 from config import host, user, password, db, api_id, api_hash, phone_number
@@ -11,6 +12,8 @@ from telethon import TelegramClient, events, sync
 
 second = 0
 client = TelegramClient('session_name', api_id, api_hash)
+ip = socket.gethostbyname(socket.gethostname())
+ipTail = ip.split('.')[-1]
 
 class FileEventHandler(FileSystemEventHandler):
 	def __init__(self):
@@ -47,8 +50,8 @@ class FileEventHandler(FileSystemEventHandler):
 				for people in data:
 					try:
 						with connection.cursor() as cursor:
-							sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`) VALUES (%s, %s, %s, %s, %s )"
-							cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTume)))
+							sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
+							cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTume), ipTail))
 						connection.commit()
 					except:
 						print("stored fail...")
