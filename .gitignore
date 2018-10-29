@@ -3,3 +3,6 @@ __pycache__
 session_name.session
 session_name.session-journal
 Files
+*.ipynb
+data
+.DS_Store

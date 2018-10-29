@@ -43,24 +43,26 @@ class FileEventHandler(FileSystemEventHandler):
 		
 		# Expected that data is a list.
 		try:
-			for people in data:
-				try:
-					with connection.cursor() as cursor:
-						sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`) VALUES (%s, %s, %s, %s, %s )"
-						cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTume)))
-					connection.commit()
-				except:
-					print("stored fail...")
-				finally:
-					pass
+			if( data ):
+				for people in data:
+					try:
+						with connection.cursor() as cursor:
+							sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`) VALUES (%s, %s, %s, %s, %s )"
+							cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTume)))
+						connection.commit()
+					except:
+						print("stored fail...")
+					finally:
+						pass
+				print("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTume)))
+			else:
+				print("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
 
 		except TypeError as e:
 			print(e)
 		finally:
-			if( data ):
-				print("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTume)))
-			else:
-				print("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
+			pass
+			
 
 		self.disconect(connection)
 		second = 0
@@ -69,6 +71,8 @@ class FileEventHandler(FileSystemEventHandler):
 	def on_created(self, event):
 		if not event.is_directory:
 			# if there is a file created
+			# avoid the json format error cuz read before write.
+			time.sleep(5)
 			try:
 				with open(event.src_path) as f:
 					data = json.load(f)
