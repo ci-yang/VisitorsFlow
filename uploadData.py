@@ -29,6 +29,8 @@ client = TelegramClient('session_name', api_id, api_hash)
 ip = socket.gethostbyname(socket.gethostname())
 ipTail = ip.split('.')[-1]
 
+dataList = []		# Stored the fail data result in cutting network.
+
 class FileEventHandler(FileSystemEventHandler):
 	def __init__(self):
 		FileSystemEventHandler.__init__(self)
@@ -53,7 +55,7 @@ class FileEventHandler(FileSystemEventHandler):
 		return datetime.strptime(timeString, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
 
 
-	def uploadData(self, data, outputTume):
+	def uploadData(self, data, outputTime):
 		global second
 		connection = self.connectting()
 
@@ -64,18 +66,18 @@ class FileEventHandler(FileSystemEventHandler):
 				for people in data:
 					try:
 						with connection.cursor() as cursor:
-							sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
-							cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTume), ipTail))
+							sql = "INSERT INTO `PeopleFlowTest` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
+							cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTime), ipTail))
 						connection.commit()
 					except:
 						print("stored fail...")
 					finally:
 						pass
-				print("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTume)))
-				logger.info("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTume)))
+				print("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTime)))
+				logger.info("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTime)))
 			else:
-				print("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
-				logger.warning("空資料...[{}]".format(self.timeStringTransfer(outputTume)))
+				print("空資料...[{}]".format(self.timeStringTransfer(outputTime)))
+				logger.warning("空資料...[{}]".format(self.timeStringTransfer(outputTime)))
 
 		except TypeError as e:
 			print(e)
@@ -86,8 +88,38 @@ class FileEventHandler(FileSystemEventHandler):
 		self.disconect(connection)
 		second = 0
 
+	def reUploadData(self):	# 恢復網路後重新上傳
+		global dataList
+		connection = self.connectting()
+
+		
+		# Expected that data is a list.
+		try:
+			for people in dataList:
+				try:
+					with connection.cursor() as cursor:
+						sql = "INSERT INTO `PeopleFlowTest` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
+						cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(people["outputTime"]), ipTail))
+					connection.commit()
+				except:
+					print("stored fail...")
+				finally:
+					pass
+			print("結束補傳...共 {} 筆資料".format(len(dataList)))
+			logger.info("結束補傳...共 {} 筆資料".format(len(dataList)))
+			dataList = []
+
+		except TypeError as e:
+			print(e)
+		finally:
+			pass
+			
+
+		self.disconect(connection)
+
 
 	def on_created(self, event):
+		global second, dataList
 		if not event.is_directory:
 			# if there is a file created
 			# avoid the json format error cuz read before write.
@@ -98,7 +130,21 @@ class FileEventHandler(FileSystemEventHandler):
 
 				filename = os.path.basename(event.src_path).replace(".json", "")
 
-				self.uploadData(data, filename)
+				try:
+					self.uploadData(data, filename)
+
+					if(dataList):
+						logger.info("網路已恢復...[{}]".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+						self.reUploadData()
+				except pymysql.OperationalError as e:	# 斷網時
+					second = 400
+					for people in data:
+						people['outputTime'] = filename
+						dataList.append(people)
+					logger.error("斷網中...({} 筆資料進暫存)...[{}]".format(len(data), datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+					print(e)
+					# print("dataList: ", dataList)
+
 			except ValueError:
 				print("Something like json format is wrong...({})".format(event.src_path))
 				logger.error("Something like json format is wrong...({})".format(event.src_path))
