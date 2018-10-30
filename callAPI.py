@@ -5,10 +5,19 @@ import json
 import requests
 import pandas as pd
 import pymysql.cursors
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import OrderedDict, defaultdict
 from config import host, user, password, db, api_id, api_hash, phone_number
 
+if not os.path.exists("log"):
+    os.makedirs("log")
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    handlers = [logging.FileHandler('log/callAPI.log', 'w', 'utf-8'),])
+
+logger = logging.getLogger('peopleFlow')
 
 def connectting():
 	connection = pymysql.connect(host=host,
@@ -56,8 +65,12 @@ def calculatePeopleFlow(data):
 	countAccuInObj = { "SSID": "SS-007", "TagType": "CountAccuIn", "TagID": "902", "TagValue": "", "StartTime": "", "EndTime": "" }
 	countAccuOuntObj = { "SSID": "SS-007", "TagType": "CountAccuOut", "TagID": "903", "TagValue": "", "StartTime": "", "EndTime": "" }
 
-	startTime = timeFormatTransfer(data[0]['time'])
-	endTime = timeFormatTransfer(data[-1]['time'])
+	#startTime = timeFormatTransfer(data[0]['time'])
+	#endTime = timeFormatTransfer(data[-1]['time'])
+	
+	# default 5 minutes
+	startTime = (datetime.now()- timedelta(seconds=300)).strftime("%Y-%m-%d %H:%M:%S")
+	endTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 	df = pd.DataFrame(data)
 	# people who is getting in the place.
@@ -91,6 +104,8 @@ def callingAPI(postData):
 	res.encoding = 'utf-8'
 	# res.encoding = 'utf-8-sig'	# for windows
 	print(res.json())
+	logger.info("state: {}...[{}]".format(res.json(), datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
 
 if __name__ == "__main__":
 	# Use Jenkins to run this program
@@ -105,11 +120,13 @@ if __name__ == "__main__":
 	if(data):
 		postData = calculatePeopleFlow(data)
 		print(postData)
+		logger.info("Data: {}".format(postData))
 
 		callingAPI(postData)
 	
 	else:
 		print("No Data")
+		logger.error("No Data...[{}]".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 
 
