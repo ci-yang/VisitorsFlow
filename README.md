@@ -23,6 +23,7 @@ db = "your db name"
 api_id = 12345   # your telegram app api id
 api_hash = 'xxxxxx'	# your telegram app api hash
 phone_number = '+886012312312'	# your telegram phone number
+socketServer = 'localhost'		# your socket server IP
 ```
 
 

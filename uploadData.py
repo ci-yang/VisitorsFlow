@@ -6,10 +6,11 @@ import socket
 import logging
 import pymysql.cursors
 from datetime import datetime
-from config import host, user, password, db, api_id, api_hash, phone_number
+from config import host, user, password, db, api_id, api_hash, phone_number, socketServer
 from watchdog.observers import Observer
 from watchdog.events import *
 from telethon import TelegramClient, events, sync
+from socketIO_client_nexus import SocketIO, LoggingNamespace
 
 # make dir named log to store log files
 if not os.path.exists("log"):
@@ -66,7 +67,7 @@ class FileEventHandler(FileSystemEventHandler):
 				for people in data:
 					try:
 						with connection.cursor() as cursor:
-							sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
+							sql = "INSERT INTO `peopleflow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
 							cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTime), ipTail))
 						connection.commit()
 					except:
@@ -98,7 +99,7 @@ class FileEventHandler(FileSystemEventHandler):
 			for people in dataList:
 				try:
 					with connection.cursor() as cursor:
-						sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
+						sql = "INSERT INTO `peopleflow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
 						cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(people["outputTime"]), ipTail))
 					connection.commit()
 				except:
@@ -162,20 +163,29 @@ if __name__ == "__main__":
 		event_handler = FileEventHandler()
 		observer.schedule(event_handler, sys.argv[1], True)
 		observer.start()
-		print("開始偵測...")
 
-		try:
-			while True:
-				time.sleep(1)
-				second = second + 1
-				# if(second < 310):
-				#	print(second)
-				if(second == 310):
-					print("已經五分鐘沒有資料了，快去查看一下吧 ",  datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-					client.send_message('me', "已經五分鐘沒有資料了，快去查看一下吧 " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-		except KeyboardInterrupt:
-			observer.stop()
-		observer.join()
+		ipTail = '12'
+
+		with SocketIO(socketServer, 5858, LoggingNamespace) as socketIO:
+			socketIO.emit('username', ipTail)
+
+			print("開始偵測...")
+
+			try:
+				while True:
+					time.sleep(1)
+					second = second + 1
+					socketIO.emit('getSecond', second, ipTail)
+					# if(second < 310):
+					#	print(second)
+					if(second == 310):
+						print("已經五分鐘沒有資料了，快去查看一下吧 ",  datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+						client.send_message('me', "已經五分鐘沒有資料了，快去查看一下吧 " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+			except KeyboardInterrupt:
+				observer.stop()
+			observer.join()
+
+			socketIO.wait()
 	except IndexError:
 		print("Please enter path.")
 		print("EX: python uploadData.py [folder path]")
