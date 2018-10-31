@@ -164,8 +164,6 @@ if __name__ == "__main__":
 		observer.schedule(event_handler, sys.argv[1], True)
 		observer.start()
 
-		ipTail = '12'
-
 		with SocketIO(socketServer, 5858, LoggingNamespace) as socketIO:
 			socketIO.emit('username', ipTail)
 
