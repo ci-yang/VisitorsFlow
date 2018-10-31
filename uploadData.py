@@ -66,11 +66,11 @@ class FileEventHandler(FileSystemEventHandler):
 				for people in data:
 					try:
 						with connection.cursor() as cursor:
-							sql = "INSERT INTO `PeopleFlowTest` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
+							sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
 							cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(outputTime), ipTail))
 						connection.commit()
 					except:
-						print("stored fail...")
+						logger.error("意外的沒存到...")
 					finally:
 						pass
 				print("Done with stored...共 {} 筆資料...[{}]".format(len(data), self.timeStringTransfer(outputTime)))
@@ -98,11 +98,11 @@ class FileEventHandler(FileSystemEventHandler):
 			for people in dataList:
 				try:
 					with connection.cursor() as cursor:
-						sql = "INSERT INTO `PeopleFlowTest` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
+						sql = "INSERT INTO `PeopleFlow` (`peopleID`, `state`, `time`, `frameNumber`, `outputTime`, `ip`) VALUES (%s, %s, %s, %s, %s, %s )"
 						cursor.execute(sql, (people["ID"],people["inOut"], self.timeStringTransfer(people["time"]), people["frameNumber"], self.timeStringTransfer(people["outputTime"]), ipTail))
 					connection.commit()
 				except:
-					print("stored fail...")
+					logger.error("意外的沒存到...")
 				finally:
 					pass
 			print("結束補傳...共 {} 筆資料".format(len(dataList)))
