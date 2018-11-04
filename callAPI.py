@@ -8,7 +8,8 @@ import pandas as pd
 import pymysql.cursors
 from datetime import datetime, timedelta
 from collections import OrderedDict, defaultdict
-from config import host, user, password, db, api_id, api_hash, phone_number
+from socketIO_client_nexus import SocketIO, LoggingNamespace
+from config import host, user, password, db, api_id, api_hash, phone_number, socketServer
 
 if not os.path.exists("log"):
     os.makedirs("log")
@@ -35,7 +36,7 @@ def disconect(connection):
 
 def gettingData(timeString):
 	connection = connectting()
-	todayMorning = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+	todayMorning = (datetime.now()- timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
 	result = None
 	try:
 		with connection.cursor() as cursor:
@@ -100,12 +101,14 @@ def calculatePeopleFlow(data):
 	return json.dumps(finalList)
 
 def callingAPI(postData):
-	url = "http://210.65.129.47:8008/FloraIOCAPI/reportParkPeopleFlow"
+	url = "http://10.200.200.201:8008/FloraIOCAPI/reportParkPeopleFlow"
 	res = requests.post(url, data=postData)
 	res.encoding = 'utf-8'
 	# res.encoding = 'utf-8-sig'	# for windows
 	print(res.json())
 	logger.info("state: {}...[{}]".format(res.json(), datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+	
+	return res.json()
 
 
 if __name__ == "__main__":
@@ -120,10 +123,25 @@ if __name__ == "__main__":
 
 	if(data):
 		postData = calculatePeopleFlow(data)
-		print(postData)
+		packedData = json.loads(postData)
 		logger.info("Data: {}".format(postData))
 
-		callingAPI(postData)
+		countPeople = packedData[0]['TagValue']
+		countInPeople = packedData[1]['TagValue']
+		countOutPeople = packedData[2]['TagValue']
+
+		response = callingAPI(postData)
+
+		message_dict = {
+			"signal": response['Desc'],
+    		"info": '進: {}, 出: {}, stay: {}'.format(countInPeople, countOutPeople, countPeople),
+    		"status": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		}
+
+		with SocketIO(socketServer, 5858, LoggingNamespace) as socketIO:
+			socketIO.emit('username', 'callAPI')
+			socketIO.emit('message', message_dict)
+			socketIO.wait(seconds=5)
 	
 	else:
 		print("No Data")
